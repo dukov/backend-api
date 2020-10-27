@@ -1,0 +1,7 @@
+domain: dukov.github.com
+repo: github.com/dukov/backend-api
+resources:
+- group: dukov
+  kind: Application
+  version: v1alpha1
+version: "2"
