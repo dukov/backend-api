@@ -5,7 +5,7 @@ metadata:
   name: application-editor-role
 rules:
 - apiGroups:
-  - dukov.dukov.github.com
+  - dukov.github.com
   resources:
   - applications
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - dukov.dukov.github.com
+  - dukov.github.com
   resources:
   - applications/status
   verbs:

@@ -1,7 +1,10 @@
-apiVersion: dukov.dukov.github.com/v1alpha1
+apiVersion: dukov.github.com/v1alpha1
 kind: Application
 metadata:
   name: application-sample
 spec:
-  # Add fields here
-  foo: bar
+  resources:
+  - apiVersion: v1
+    kind: Service
+    name: kubernetes
+    namespace: default
