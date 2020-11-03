@@ -16,6 +16,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/emicklei/go-restful"
@@ -23,9 +24,14 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	goclientrest "k8s.io/client-go/rest"
 	"sigs.k8s.io/cluster-api/controllers/external"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	dukovv1alpha1 "github.com/dukov/backend-api/api/v1alpha1"
+)
+
+var (
+	apiLog = ctrl.Log.WithName("app-manager")
 )
 
 // ApplicationManager for controlling application api
@@ -76,15 +82,19 @@ func (am *ApplicationManager) RouteBuilders(ws *restful.WebService) []*restful.R
 
 // List resources
 func (am *ApplicationManager) List(request *restful.Request, response *restful.Response) {
+	apiLog.Info(fmt.Sprintf("Got request on %s", request.Request.URL.Path))
 	appList := &dukovv1alpha1.ApplicationList{}
-	if err := am.Client.List(am.Context, appList); err != nil {
+	if err := am.Client.List(am.Context, appList, &client.ListOptions{Namespace: "default"}); err != nil {
+		apiLog.Error(err, "Got error while retrieving app list")
 		response.WriteError(http.StatusInternalServerError, err)
 	}
+	apiLog.Info(fmt.Sprintf("Retrieved %d app objects", len(appList.Items)))
 	response.WriteAsJson(appList.Items)
 }
 
 // Get resource
 func (am *ApplicationManager) Get(request *restful.Request, response *restful.Response) {
+	apiLog.Info(fmt.Sprintf("Got request on %s", request.Request.URL.Path))
 	name := request.PathParameter("app-name")
 	ns := request.QueryParameter("namespace")
 	if ns == "" {
@@ -93,16 +103,19 @@ func (am *ApplicationManager) Get(request *restful.Request, response *restful.Re
 	appObj := &dukovv1alpha1.Application{}
 	objectKey := client.ObjectKey{Name: name, Namespace: ns}
 	if err := am.Client.Get(am.Context, objectKey, appObj); err != nil {
+		apiLog.Error(err, "Got error while retrieving app")
 		response.WriteError(http.StatusInternalServerError, err)
 	}
 	result := make([]*unstructured.Unstructured, len(appObj.Spec.Resources))
 	for i, objRef := range appObj.Spec.Resources {
 		resource, err := external.Get(context.TODO(), am.Client, objRef, objRef.Namespace)
 		if err != nil {
+			apiLog.Error(err, "Got error while retrieving app components")
 			response.WriteError(http.StatusInternalServerError, err)
 			return
 		}
 		result[i] = resource
 	}
+	apiLog.Info(fmt.Sprintf("Retrieved %d app components", len(result)))
 	response.WriteAsJson(result)
 }

@@ -23,28 +23,16 @@ import (
 
 	"github.com/emicklei/go-restful"
 
-	"k8s.io/apimachinery/pkg/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	dukovv1alpha1 "github.com/dukov/backend-api/api/v1alpha1"
 	"github.com/dukov/backend-api/pkg/service"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
 )
-
-func init() {
-	_ = clientgoscheme.AddToScheme(scheme)
-
-	_ = dukovv1alpha1.AddToScheme(scheme)
-	// +kubebuilder:scaffold:scheme
-}
 
 func main() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
